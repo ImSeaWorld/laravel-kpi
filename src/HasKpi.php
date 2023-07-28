@@ -5,7 +5,6 @@ namespace Finller\Kpi;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Finller\Kpi\Enums\KpiInterval;
-use Illuminate\Support\Facades\DB;
 
 trait HasKpi
 {
@@ -58,8 +57,6 @@ trait HasKpi
             ])
             ->toArray();
 
-        DB::beginTransaction();
-
         foreach ($fillDates as $date) {
             if (isset($date['id'])) continue;
 
@@ -74,14 +71,10 @@ trait HasKpi
                 $date
             ));
 
-            if (!$kpi->save()) {
-                DB::rollBack();
-                /** @return bool */
-                return false;
-            }
+            if ($kpi->save()) continue;
+            /** @return bool */
+            return false;
         }
-
-        DB::commit();
         /** @return bool */
         return true;
     }
