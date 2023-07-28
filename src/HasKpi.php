@@ -10,7 +10,7 @@ trait HasKpi
 {
     public static function getKpiNamespace(): string
     {
-        return Str::lower(Str::plural(class_basename(static::class)));
+        return Str::snake(class_basename(static::class));
     }
 
     public static function kpi(string $key = 'count'): KpiBuilder
@@ -37,7 +37,7 @@ trait HasKpi
         ?Carbon $start = null,
         ?Carbon $end = null,
         ?string $key = 'count',
-    ): array {
+    ): bool {
         $kpiModel = config('kpi.kpi_model');
         /** @var ?Carbon */
         $start = $start ?? Carbon::parse(static::min($column));
@@ -57,7 +57,7 @@ trait HasKpi
             ])
             ->toArray();
 
-        foreach ($fillDates as $k => $date) {
+        foreach ($fillDates as $date) {
             if (isset($date['id'])) continue;
 
             $kpi = new $kpiModel();
@@ -71,12 +71,12 @@ trait HasKpi
                 $date
             ));
 
-            $kpi->save();
-
-            $fillDates[$k] = $kpi->toArray();
+            if ($kpi->save()) continue;
+            /** @return bool */
+            return false;
         }
-        /** @return array */
-        return $fillDates;
+        /** @return bool */
+        return true;
     }
 
     public static function backfillKpiCount(
@@ -85,7 +85,7 @@ trait HasKpi
         ?Carbon $start = null,
         ?Carbon $end = null,
         ?string $key = 'count'
-    ): array {
+    ): bool {
         return static::backfillKpi(
             function ($model, $start, $end, $key, $date) use ($column) {
                 $count = $model->whereBetween($column, [

@@ -2,20 +2,31 @@
 
 namespace Finller\Kpi;
 
-use Carbon\Carbon;
 use Error;
-use Finller\Kpi\Adapters\AbstractAdapter;
-use Finller\Kpi\Adapters\MySqlAdapter;
-use Finller\Kpi\Adapters\SqliteAdapter;
-use Finller\Kpi\Database\Factories\KpiFactory;
-use Finller\Kpi\Enums\KpiInterval;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+use Finller\Kpi\{
+    Enums\KpiInterval,
+    Database\Factories\KpiFactory,
+};
+use Finller\Kpi\Adapters\{
+    MySqlAdapter,
+    SqliteAdapter,
+    AbstractAdapter,
+};
+
+use Illuminate\Support\{
+    Str,
+    Facades\DB
+};
+use Illuminate\Database\Eloquent\{
+    Model,
+    Builder,
+    Factories\Factory,
+    Factories\HasFactory,
+    Casts\ArrayObject,
+    Casts\AsArrayObject,
+};
 
 /**
  * @property string $key
@@ -114,7 +125,7 @@ class Kpi extends Model
         return match ($driver) {
             'mysql' => new MySqlAdapter(),
             'sqlite' => new SqliteAdapter(),
-            // 'pgsql' => new PgsqlAdapter(),
+                // 'pgsql' => new PgsqlAdapter(),
             default => throw new Error("Unsupported database driver : {$driver}."),
         };
     }
@@ -142,7 +153,7 @@ class Kpi extends Model
 
     protected function toNumberDifference(float|int|null $value, bool $relative = false): ?float
     {
-        if (! $this->number_value || $value === null) {
+        if (!$this->number_value || $value === null) {
             return null;
         }
 
